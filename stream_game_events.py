@@ -51,7 +51,7 @@ def sim( bias ):
     return game_server, game_type, game_map, player, killed, x_cord, y_cord, event_datetime
 
 
-def pubsub_publish( pubsub_publisher, pubsub_topic_path, message ):
+def pubsub_publish( pubsub_publisher, project_id, pubsub_topic, message ):
     '''
         Pub/Sub Publish Message
         Notes:
@@ -62,10 +62,12 @@ def pubsub_publish( pubsub_publisher, pubsub_topic_path, message ):
         
         
         pubsub_publisher  = pubsub_v1.PublisherClient()
-        pubsub_topic_path = pubsub_publisher.topic_path(project_id, topic_name)
         
     '''
     try:
+        # Initialize PubSub Path
+        pubsub_topic_path = pubsub_publisher.topic_path( project_id, pubsub_topic )
+        
         # If message is JSON, then dump to json string
         if type( message ) is dict:
             message = json.dumps( message )
@@ -214,7 +216,7 @@ if __name__ == "__main__":
     
     # Initialize PubSub Object
     pubsub_publisher  = pubsub_v1.PublisherClient()
-    pubsub_topic_path = pubsub_publisher.topic_path(args['project_id'], args['pubsub_topic'])
+    #pubsub_topic_path = pubsub_publisher.topic_path(args['project_id'], args['pubsub_topic'])
     
     # Generate initial game_id as a starting point
     game_id = '{}-{}-{}{}'.format( generate_username( 1 )[0], int(random.random()*10000000), int(random.random()*100000000000000), int(random.random()*100000000000000) )
@@ -264,7 +266,7 @@ for i in range( int(args['number_of_records']) ):
     
     # Write to sink - Either PubSub or directly to BigQuery
     if args['sink'] == 'pubsub':
-        pubsub_publish( pubsub_publisher, pubsub_topic_path, message=payload )
+        pubsub_publish( pubsub_publisher, project_id=args['project_id'], pubsub_topic=args['pubsub_topic'], message=payload )
         #pubsub_publish_bash( topic_name=args['pubsub_topic'], json_message=payload )
     elif args['sink'] == 'bigquery':
         stream_to_bq( bq_client, bq_table, json_payload=payload )
