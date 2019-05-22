@@ -1,34 +1,4 @@
 
-'''
-#########################################################
-Setup:
-
-
-# Create BigQuery Table
-bq rm -f -t zproject201807:gaming.gaming_events_stream
-bq mk --table --location=US gaming.gaming_events_stream uid:STRING,game_id:STRING,game_server:STRING,game_type:STRING,game_map:STRING,event_datetime:TIMESTAMP,player:STRING,killed:STRING,weapon:STRING,x_cord:INTEGER,y_cord:INTEGER
-
-# Create PubSub Topic
-gcloud pubsub topics create gaming_events
-
-# Create PubSub Subscription
-gcloud pubsub subscriptions create --topic gaming_events gaming_events_sub
-
-# Setup Dataflow Project (PubSub Subscription > BigQuery Streaming)
-# I'm currently doing this within the GCP Console, under Dataflow.
-
-#########################################################
-'''
-
-
-'''
-USAGE:
-
-stream_game_events.py --project_id zproject201807 --bq_dataset_id gaming --bq_table_id gaming_events --sink pubsub --number_of_records 10 --delay 0
-
-'''
-
-
 import sys,csv
 import json
 import random
@@ -37,7 +7,6 @@ import datetime,time
 import argparse
 import subprocess
 from google.cloud import bigquery, pubsub_v1
-
 
 #########################################################
 #
@@ -216,13 +185,13 @@ players = generate_username( 5000 )
 if __name__ == "__main__":
     
     ap = argparse.ArgumentParser()
-    ap.add_argument("--project_id",         required=True,              help="GCP Project ID")
-    ap.add_argument("--bq_dataset_id",      required=True,              help="BigQuery Dataset ID")
-    ap.add_argument("--bq_table_id",        required=True,              help="BigQuery Table Name")
-    ap.add_argument("--pubsub_topic",       required=False,             help="BigQuery Table Name")
-    ap.add_argument("--sink",               required=True,              help="Set to 'pubsub' or 'bigquery'")
-    ap.add_argument("--number_of_records",  required=False, default=100 help="Number of records to stream")
-    ap.add_argument("--delay",              required=False, default=0,  help="Time delay inbetween events")
+    ap.add_argument("--project_id",         required=True,               help="GCP Project ID")
+    ap.add_argument("--bq_dataset_id",      required=True,               help="BigQuery Dataset ID")
+    ap.add_argument("--bq_table_id",        required=True,               help="BigQuery Table Name")
+    ap.add_argument("--pubsub_topic",       required=False,              help="BigQuery Table Name")
+    ap.add_argument("--sink",               required=True,               help="Set to 'pubsub' or 'bigquery'")
+    ap.add_argument("--number_of_records",  required=False, default=100, help="Number of records to stream")
+    ap.add_argument("--delay",              required=False, default=0,   help="Time delay inbetween events")
     args = vars(ap.parse_args())
     
     '''
@@ -307,5 +276,10 @@ for i in range( int(args['number_of_records']) ):
     print(payload)
 
 
+
+'''
+USAGE:
+stream_game_events.py --project_id zproject201807 --bq_dataset_id gaming --bq_table_id gaming_events --sink pubsub --number_of_records 10 --delay 0
+'''
 
 #ZEND
