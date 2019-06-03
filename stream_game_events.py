@@ -274,7 +274,7 @@ for i in range( int(args['number_of_records']) ):
         print('[ ERROR ] No value set for "sink"')
         sys.exit()
     
-    time.sleep( int(args['delay']) )
+    time.sleep( float(args['delay']) )
     print(payload)
 
 
