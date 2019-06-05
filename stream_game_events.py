@@ -220,63 +220,62 @@ if __name__ == "__main__":
     
     # Generate initial game_id as a starting point
     game_id = '{}-{}-{}{}'.format( generate_username( 1 )[0], int(random.random()*10000000), int(random.random()*100000000000000), int(random.random()*100000000000000) )
-    
-for i in range( int(args['number_of_records']) ):
-    
-    # UID
-    uid = '{}_{}'.format(datetime.datetime.now().strftime('%Y%m%d_%H%M%S%f'), int(random.random()*10000) )
-    
-    # Game ID
-    if random.random()>=0.98:
-        game_id = '{}-{}-{}{}'.format( generate_username( 1 )[0], int(random.random()*10000000), int(random.random()*100000000000000), int(random.random()*100000000000000) )
-    else:
-        game_id = game_id
-    
-    # Weapon
-    weapon = random.choice( weapons )
-    
-    if   weapon=='Electro':     bias=0.05
-    elif weapon=='Hagar':       bias=0.15
-    elif weapon=='Shotgun':     bias=0.25
-    elif weapon=='Mine Layer':  bias=0.35
-    elif weapon=='Crylink':     bias=0.45
-    elif weapon=='Mortar':      bias=0.55
-    elif weapon=='Blaster':     bias=0.65
-    elif weapon=='Machine Gun': bias=0.75
-    elif weapon=='Devastator':  bias=0.85
-    elif weapon=='Vortex':      bias=0.95
-    else:                       bias=0.50
-    
-    game_server, game_type, game_map, player, killed, x_cord, y_cord, event_datetime = sim( bias )
-    
-    # Stream to BigQuery
-    payload = {
-        'uid':          uid,
-        'game_id':      game_id,
-        'game_server':  game_server,
-        'game_type':    game_type,
-        'game_map':     game_map,
-        'event_datetime': event_datetime,
-        'player':       player,
-        'killed':       killed,
-        'weapon':       weapon,
-        'x_cord':       x_cord,
-        'y_cord':       y_cord
-    }
-    
-    # Write to sink - Either PubSub or directly to BigQuery
-    if args['sink'] == 'pubsub':
-        pubsub_publish( pubsub_publisher, project_id=args['project_id'], pubsub_topic=args['pubsub_topic'], message=payload )
-        #pubsub_publish_bash( topic_name=args['pubsub_topic'], json_message=payload )
-    elif args['sink'] == 'bigquery':
-        stream_to_bq( bq_client, bq_table, json_payload=payload )
-    else:
-        print('[ ERROR ] No value set for "sink"')
-        sys.exit()
-    
-    time.sleep( float(args['delay']) )
-    print(payload)
 
+    for i in range( int(args['number_of_records']) ):
+
+        # UID
+        uid = '{}_{}'.format(datetime.datetime.now().strftime('%Y%m%d_%H%M%S%f'), int(random.random()*10000) )
+
+        # Game ID
+        if random.random()>=0.98:
+            game_id = '{}-{}-{}{}'.format( generate_username( 1 )[0], int(random.random()*10000000), int(random.random()*100000000000000), int(random.random()*100000000000000) )
+        else:
+            game_id = game_id
+
+        # Weapon
+        weapon = random.choice( weapons )
+
+        if   weapon=='Electro':     bias=0.05
+        elif weapon=='Hagar':       bias=0.15
+        elif weapon=='Shotgun':     bias=0.25
+        elif weapon=='Mine Layer':  bias=0.35
+        elif weapon=='Crylink':     bias=0.45
+        elif weapon=='Mortar':      bias=0.55
+        elif weapon=='Blaster':     bias=0.65
+        elif weapon=='Machine Gun': bias=0.75
+        elif weapon=='Devastator':  bias=0.85
+        elif weapon=='Vortex':      bias=0.95
+        else:                       bias=0.50
+
+        game_server, game_type, game_map, player, killed, x_cord, y_cord, event_datetime = sim( bias )
+
+        # Stream to BigQuery
+        payload = {
+            'uid':          uid,
+            'game_id':      game_id,
+            'game_server':  game_server,
+            'game_type':    game_type,
+            'game_map':     game_map,
+            'event_datetime': event_datetime,
+            'player':       player,
+            'killed':       killed,
+            'weapon':       weapon,
+            'x_cord':       x_cord,
+            'y_cord':       y_cord
+        }
+
+        # Write to sink - Either PubSub or directly to BigQuery
+        if args['sink'] == 'pubsub':
+            pubsub_publish( pubsub_publisher, project_id=args['project_id'], pubsub_topic=args['pubsub_topic'], message=payload )
+            #pubsub_publish_bash( topic_name=args['pubsub_topic'], json_message=payload )
+        elif args['sink'] == 'bigquery':
+            stream_to_bq( bq_client, bq_table, json_payload=payload )
+        else:
+            print('[ ERROR ] No value set for "sink"')
+            sys.exit()
+
+        time.sleep( float(args['delay']) )
+        print(payload)
 
 
 '''
