@@ -136,4 +136,37 @@ FROM
 WHERE rownum <= 2
 
 
+
+SELECT
+  CASE CENTROID_ID WHEN 1 THEN 'Cluster #1'
+                   WHEN 2 THEN 'Cluster #2'
+                   WHEN 3 THEN 'Cluster #3'
+                   WHEN 4 THEN 'Cluster #4'
+                   WHEN 5 THEN 'Cluster #5'
+                   ELSE '' END AS CLUSTER_NAME,
+  CENTROID_ID,
+  game_type,
+  count
+FROM
+(
+  SELECT
+    *,
+    ROW_NUMBER() OVER ( PARTITION BY CENTROID_ID ORDER BY CENTROID_ID, count desc ) as rownum
+  FROM
+    (
+    SELECT
+        CENTROID_ID, 
+        game_type,
+        count(*) as count
+    FROM 
+        `zproject201807.gaming.game_clusters`
+    GROUP BY 
+        CENTROID_ID, game_type
+    ORDER BY 
+        CENTROID_ID, count desc
+    )
+)
+WHERE rownum <= 2
+
+
 #ZEND
