@@ -136,17 +136,15 @@ FROM
 WHERE rownum <= 2
 
 
-
 SELECT
+  CENTROID_ID,
   CASE CENTROID_ID WHEN 1 THEN 'Cluster #1'
                    WHEN 2 THEN 'Cluster #2'
                    WHEN 3 THEN 'Cluster #3'
                    WHEN 4 THEN 'Cluster #4'
                    WHEN 5 THEN 'Cluster #5'
                    ELSE '' END AS CLUSTER_NAME,
-  CENTROID_ID,
-  game_type,
-  count
+  STRING_AGG(game_type, ", ") as game_types
 FROM
 (
   SELECT
@@ -167,6 +165,8 @@ FROM
     )
 )
 WHERE rownum <= 2
+GROUP BY CLUSTER_NAME, CENTROID_ID 
+ORDER BY CENTROID_ID ASC
 
 
 #ZEND
