@@ -99,21 +99,14 @@ WHERE rownum <= 2
 
 
 SELECT
+  CENTROID_ID,
   CASE CENTROID_ID WHEN 1 THEN 'Cluster #1'
                    WHEN 2 THEN 'Cluster #2'
                    WHEN 3 THEN 'Cluster #3'
                    WHEN 4 THEN 'Cluster #4'
                    WHEN 5 THEN 'Cluster #5'
                    ELSE '' END AS CLUSTER_NAME,
-  CENTROID_ID,
-  CASE dow         WHEN 1 THEN 'Sunday'
-                   WHEN 2 THEN 'Monday'
-                   WHEN 3 THEN 'Tuesday'
-                   WHEN 4 THEN 'Wednesday'
-                   WHEN 5 THEN 'Thursday'
-                   WHEN 6 THEN 'Friday'
-                   WHEN 7 THEN 'Saturday'
-                   ELSE '' END AS DAY_OF_WEEK
+  STRING_AGG(DAY_OF_WEEK, ", ") as MOST_COMMON_DAYS
 FROM
 (
   SELECT
@@ -123,17 +116,26 @@ FROM
     (
     SELECT
         CENTROID_ID, 
-        dow,
+        CASE dow         WHEN 1 THEN 'Sunday'
+                         WHEN 2 THEN 'Monday'
+                         WHEN 3 THEN 'Tuesday'
+                         WHEN 4 THEN 'Wednesday'
+                         WHEN 5 THEN 'Thursday'
+                         WHEN 6 THEN 'Friday'
+                         WHEN 7 THEN 'Saturday'
+                         ELSE '' END AS DAY_OF_WEEK,
         count(*) as count
     FROM 
         `zproject201807.gaming.game_clusters`
     GROUP BY 
-        CENTROID_ID, dow
+        CENTROID_ID, DAY_OF_WEEK
     ORDER BY 
         CENTROID_ID, count desc
     )
 )
 WHERE rownum <= 2
+GROUP BY CLUSTER_NAME, CENTROID_ID 
+ORDER BY CENTROID_ID ASC
 
 
 SELECT
