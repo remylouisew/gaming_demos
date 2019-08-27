@@ -413,11 +413,72 @@ ORDER BY
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 #################################################################
 #
 #   Logistic Regression
 #
 #################################################################
+
+
+# Simulation
+
+CREATE OR REPLACE TABLE `gaming-demos.taw_clustering.coincrush_game_data`
+AS
+SELECT
+  * EXCEPT ( randompct )
+FROM (
+  SELECT
+    *,
+    CASE
+      WHEN randompct > 0.98 AND randompct <= 100 AND Alive_Day_Row >= 7 THEN ROUND(rand()*1,2)
+      WHEN randompct > 0.93
+    AND randompct <= 98
+    AND Alive_Day_Row >= 19 THEN ROUND(rand()*2,2)
+      WHEN randompct > 0.92 AND randompct <= 93 AND Alive_Day_Row >= 30 THEN ROUND(rand()*4,2)
+      WHEN randompct > 0.60
+    AND randompct <= 92
+    AND Alive_Day_Row >= 14 THEN ROUND(rand()*1.5,2)
+    ELSE
+    0.00
+  END
+    AS purchase,
+    CASE
+      WHEN randompct > 0.00 AND randompct <= 0.15 AND beh_EngagementTimeMins >= 0 THEN 'Devastator'
+      WHEN randompct > 0.15
+    AND randompct <= 0.35
+    AND beh_EngagementTimeMins >= 8 THEN 'Sniper Rifle'
+      WHEN randompct > 0.35 AND randompct <= 0.55 AND beh_EngagementTimeMins >= 8 THEN 'Shotgun'
+      WHEN randompct > 0.55
+    AND randompct <= 0.65
+    AND beh_EngagementTimeMins >= 5 THEN 'Electro'
+      WHEN randompct > 0.65 AND randompct <= 0.85 AND beh_EngagementTimeMins >= 0 THEN 'Machine Gun'
+    ELSE
+    'Vortex'
+  END
+    AS weapon
+  FROM (
+    SELECT
+      *,
+      rand() AS randompct
+    FROM
+      `gaming-demos.games.BBDemo_In_App_Status` ) )
+
+
+
+
+
+
 
 
 # Prepare Data (aggregate and light feature engineering)
@@ -495,6 +556,9 @@ FROM (
 
 
 
+
+
+
 # Train Model (logistic model)
 
 CREATE OR REPLACE MODEL
@@ -521,6 +585,12 @@ FROM
 
 
 
+
+
+
+
+
+
 CREATE OR REPLACE MODEL
   `gaming-demos.games.bingoblast_cluster_model_10k`
 OPTIONS
@@ -538,13 +608,13 @@ FROM
 
 
 CREATE OR REPLACE MODEL
-  `gaming-demos.games.bingoblast_cluster_model_5k_subset`
+  `gaming-demos.games.bingoblast_cluster_model_subset_5k`
 OPTIONS
   (model_type='kmeans',
     num_clusters=5,
     standardize_features = TRUE) AS
 SELECT
-    days_active, totalentrances, avg_chips, avg_powerupsgained, engagement_time_mins, sessions, stat_level, avg_score_gained, attrition
+    days_active, totalentrances, avg_chips, avg_powerupsgained, engagement_time_mins, sessions, stat_level, avg_numkeys, avg_score_gained
 FROM
     `gaming-demos.games.bingoblast_gamer_aggr`
 
@@ -688,91 +758,98 @@ ORDER BY
 
 
 
-
-WITH
-  T AS (
-  SELECT
-    centroid_id,
-    ARRAY_AGG(STRUCT(feature AS name,
-        ROUND(numerical_value,1) AS value)
-    ORDER BY
-      centroid_id) AS cluster
-  FROM
-    ML.CENTROIDS(MODEL `gaming-demos.games.bingoblast_cluster_model_10k`)
-  GROUP BY
-    centroid_id )
 SELECT
-  CONCAT('Cluster #', CAST(centroid_id AS STRING)) AS centroid,
-
-  (
+  *,
+  sessions / days_active AS sessions_per_days_active
+FROM (
+  WITH
+    T AS (
+    SELECT
+      centroid_id,
+      ARRAY_AGG(STRUCT(feature AS name,
+          ROUND(numerical_value,1) AS value)
+      ORDER BY
+        centroid_id) AS cluster
+    FROM
+      ML.CENTROIDS(MODEL `gaming-demos.games.bingoblast_cluster_model_subset_5k`)
+    GROUP BY
+      centroid_id )
   SELECT
-    value
+    CONCAT('Cluster #', CAST(centroid_id AS STRING)) AS centroid,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'days_active') AS days_active,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'totalentrances') AS totalentrances,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'avg_chips') AS avg_chips,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'avg_powerupsgained') AS avg_powerupsgained,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'engagement_time_mins') AS engagement_time_mins,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'sessions') AS sessions,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'stat_level') AS stat_level,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'avg_score_gained') AS avg_score_gained,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'avg_numkeys') AS avg_numkeys,
+    (
+    SELECT
+      value
+    FROM
+      UNNEST(cluster)
+    WHERE
+      name = 'attrition') AS attrition
   FROM
-    UNNEST(cluster)
-  WHERE
-    name = 'days_active') AS days_active,
-  (
-  SELECT
-    value
-  FROM
-    UNNEST(cluster)
-  WHERE
-    name = 'totalentrances') AS totalentrances,
-  (
-  SELECT
-    value
-  FROM
-    UNNEST(cluster)
-  WHERE
-    name = 'avg_chips') AS avg_chips,
-  (
-  SELECT
-    value
-  FROM
-    UNNEST(cluster)
-  WHERE
-    name = 'avg_powerupsgained') AS avg_powerupsgained,
-  (
-  SELECT
-    value
-  FROM
-    UNNEST(cluster)
-  WHERE
-    name = 'engagement_time_mins') AS engagement_time_mins,
-    
-  (
-  SELECT
-    value
-  FROM
-    UNNEST(cluster)
-  WHERE
-    name = 'sessions') AS sessions,
-  (
-  SELECT
-    value
-  FROM
-    UNNEST(cluster)
-  WHERE
-    name = 'stat_level') AS stat_level,
-  (
-  SELECT
-    value
-  FROM
-    UNNEST(cluster)
-  WHERE
-    name = 'avg_score_gained') AS avg_score_gained,
-  (
-  SELECT
-    value
-  FROM
-    UNNEST(cluster)
-  WHERE
-    name = 'attrition') AS attrition
-FROM
-  T
-ORDER BY
-  centroid ASC
-
+    T
+  ORDER BY
+    centroid ASC )
 
 
 
