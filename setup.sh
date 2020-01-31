@@ -2,8 +2,8 @@
 
 # Variables
 export GCP_PROJECT=gaming-demos
-export BIGQUERY_DATASET=
-export BIGQUERY_TABLE=
+export BIGQUERY_DATASET=streaming
+export BIGQUERY_TABLE=game-logs
 export PUBSUB_TOPIC=game-logs
 
 # Install python dependencies
@@ -13,6 +13,7 @@ pip install random-username==1.0.2
 
 # Create BigQuery Table
 bq rm -f -t $GCP_PROJECT:$BIGQUERY_DATASET.$BIGQUERY_TABLE
+bq --location=US mk --dataset $GCP_PROJECT:BIGQUERY_DATASET
 bq mk --table --location=US $BIGQUERY_DATASET.$BIGQUERY_TABLE uid:STRING,game_id:STRING,game_server:STRING,game_type:STRING,game_map:STRING,event_datetime:TIMESTAMP,player:STRING,killed:STRING,weapon:STRING,x_cord:INTEGER,y_cord:INTEGER
 
 # Create PubSub Topic
