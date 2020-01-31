@@ -1,4 +1,9 @@
 
+'''
+USAGE:
+stream_game_events.py --project_id zproject201807 --bq_dataset_id gaming --bq_table_id gaming_events_stream --pubsub_topic gaming_events --sink pubsub --number_of_records 10 --delay 1
+'''
+
 import sys,csv
 import json
 import random
@@ -278,9 +283,5 @@ if __name__ == "__main__":
         print(payload)
 
 
-'''
-USAGE:
-stream_game_events.py --project_id zproject201807 --bq_dataset_id gaming --bq_table_id gaming_events_stream --pubsub_topic gaming_events --sink pubsub --number_of_records 10 --delay 1
-'''
 
 #ZEND
