@@ -95,7 +95,7 @@ def run(argv=None):
     
     pipeline_args.extend([
           '--runner={}'.format(known_args.runner),                          # DataflowRunner or DirectRunner (local)
-          '--project={}'.format(known_args.project_id),
+          '--project={}'.format(known_args.gcp_project),
           '--staging_location={}'.format(known_args.gcp_staging_location),  # Google Cloud Storage gs:// path
           '--temp_location={}'.format(known_args.gcp_tmp_location),         # Google Cloud Storage gs:// path
           '--job_name=' + str(known_args.job_name),
