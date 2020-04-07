@@ -118,10 +118,14 @@ def run(argv=None):
                  p  | beam.io.ReadFromPubSub(known_args.input_topic) 
         )
         
+        # Parse events
+        parsed = (
+            events  | beam.Map(parse_pubsub)
+        )
+        
         # Tranform events
         transformed = (
-            events  | beam.Map(parse_pubsub)
-                    | beam.Map(extract_map_type)
+            parsed  | beam.Map(extract_map_type)
                     | beam.Map(lambda x: (x, 1))
                     | beam.WindowInto(window.SlidingWindows(30, 5)) # Window is 30 seconds in length, and a new window begins every five seconds
                     | beam.GroupByKey()
@@ -132,7 +136,7 @@ def run(argv=None):
         transformed | 'Print aggregated game logs' >> beam.Map(print)
         
         # Sink/Persist to BigQuery
-        events | 'Write to bq' >> beam.io.gcp.bigquery.WriteToBigQuery(
+        parsed | 'Write to bq' >> beam.io.gcp.bigquery.WriteToBigQuery(
                         table=known_args.bq_table_name,
                         dataset=known_args.bq_dataset_name,
                         project=known_args.gcp_project,
