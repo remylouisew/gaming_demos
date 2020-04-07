@@ -9,29 +9,19 @@
 #
 #   Usage:
 '''
-
-python gcp_dataflow.py \
-    --runner DirectRunner \
-    --job_name 'dzdataflowjob1' \
-    --gcp_staging_location "gs://gaming-demos-dataflow/staging" \
-    --gcp_tmp_location "gs://gaming-demos-dataflow/tmp" \
-    --batch_size 100 \
-    --project_id gaming-demos \
+python gaming_dataflow.py \
+    --gcp_project gaming-demos \
+    --region us-central1 \
+    --job_name 'gamelogs' \
+    --gcp_staging_location "gs://gaming-dataflow/staging" \
+    --gcp_tmp_location "gs://gaming-dataflow/tmp" \
+    --batch_size 10 \
     --input_topic projects/gaming-demos/topics/game-logs \
-    --dataset_name streaming \
-    --table_name game_logs \
-    --table_schema 'game_map:STRING,street:STRING,direction:STRING,from_street:STRING,to_street:STRING,length:FLOAT,street_heading:STRING,start_long:FLOAT,start_lat:FLOAT,end_long:FLOAT,end_lat:FLOAT,speed:FLOAT,last_updated:STRING,comments:STRING'
-
-
---table_schema '_direction:STRING,_fromst:STRING,_last_updt:STRING,_length:FLOAT,_lif_lat:FLOAT,_lit_lat:FLOAT,_lit_lon:FLOAT,_strheading:STRING,_tost:STRING,_traffic:STRING,segmentid:STRING,start_lon:FLOAT,street:STRING'
---table_schema 'segmentid:STRING,street:STRING,direction:STRING,from_street:STRING,to_street:STRING,length:FLOAT,street_heading:STRING,start_long:FLOAT,start_lat:FLOAT,end_long:FLOAT,end_lat:FLOAT,speed:FLOAT,last_updated:STRING,comments:STRING'
-
+    --bq_dataset_name streaming \
+    --bq_table_name game_logs \
+    --runner DirectRunner
+    --runner DataflowRunner &
 '''
-#   Used for testing:
-#   gcp_pubsub_publish_message(project_name, topic_name, json.dumps({"_direction":"NE","street":"108 main st"}).encode('utf-8'))
-#
-#
-#   pip install google-cloud-dataflow
 #
 ################################################################################################################
 
@@ -50,6 +40,25 @@ from apache_beam.io import ReadFromText
 from apache_beam.io import WriteToText
 from past.builtins import unicode
 
+################################################################################################################
+#
+#   Variables
+#
+################################################################################################################
+
+bq_schema = {'fields': [
+    {'name': 'uid',         'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'game_id',     'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'game_server', 'type': 'STRING',  'mode': 'NULLABLE'},
+    {'name': 'game_type',   'type': 'STRING',  'mode': 'NULLABLE'},
+    {'name': 'game_map',    'type': 'STRING',  'mode': 'NULLABLE'},
+    {'name': 'event_datetime',   'type': 'STRING',  'mode': 'NULLABLE'},
+    {'name': 'player',      'type': 'STRING',  'mode': 'NULLABLE'},
+    {'name': 'killed',      'type': 'STRING',  'mode': 'NULLABLE'},
+    {'name': 'weapon',      'type': 'STRING',  'mode': 'NULLABLE'},
+    {'name': 'x_cord',      'type': 'INT64',  'mode': 'NULLABLE'},
+    {'name': 'y_cord',      'type': 'INT64',  'mode': 'NULLABLE'}
+]}
 
 ################################################################################################################
 #
@@ -120,20 +129,16 @@ def run(argv=None):
         )
         
         # Print results to console (for testing/debugging)
-        transformed | beam.Map(print)
+        transformed | 'Print aggregated game logs' >> beam.Map(print)
         
         # Sink/Persist to BigQuery
-        '''
-        transformed | 'Write' >> beam.io.WriteToBigQuery(
-                        table=known_args.table_name,
-                        dataset=known_args.dataset_name,
-                        project=known_args.project_id,
-                        schema=known_args.table_schema,
-                        create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-                        write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
-                        batch_size=int(10)
+        events | 'Write to bq' >> beam.io.gcp.bigquery.WriteToBigQuery(
+                        table=known_args.bq_table_name,
+                        dataset=known_args.bq_dataset_name,
+                        project=known_args.gcp_project,
+                        schema=bq_schema,
+                        batch_size=int(known_args.batch_size)
                         )
-        '''
         
         # Sink data to PubSub
         #output | beam.io.WriteToPubSub(known_args.output_topic)
