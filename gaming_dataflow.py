@@ -80,16 +80,16 @@ def sum_by_group(GroupByKey_tuple):
 def run(argv=None):
     """Build and run the pipeline."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--runner',       required=False, default='DirectRunner',       help='Dataflow Runner - DataflowRunner or DirectRunner (local)')
-    parser.add_argument('--job_name',     required=False, default='dzdataflowjob1',     help='Dataflow Job Name')
-    parser.add_argument('--gcp_staging_location', required=False, default='gs://dataflow_staging', help='Dataflow Staging GCS location')
-    parser.add_argument('--gcp_tmp_location',     required=False, default='gs://dataflow_tmp',     help='Dataflow tmp GCS location')
-    parser.add_argument('--batch_size',   required=False, default='100',                help='Dataflow Batch Size')
-    parser.add_argument('--project_id',   required=False, default='dzproject20180301',  help='GCP Project ID')
-    parser.add_argument('--input_topic',  required=False, default='',                   help='Input PubSub Topic: projects/<project_id>/topics/<topic_name>')
-    parser.add_argument('--dataset_name', required=False, default='chicago_traffic',    help='Output BigQuery Dataset')
-    parser.add_argument('--table_name',   required=False, default='',                   help='Output BigQuery Table')
-    parser.add_argument('--table_schema', required=False, default='',                   help='Output BigQuery Schema')
+    parser.add_argument('--gcp_project',          required=True,  default='',                   help='GCP Project ID')
+    parser.add_argument('--region',               required=True,  default='',                   help='GCP Project ID')
+    parser.add_argument('--job_name',             required=True,  default='',                   help='Dataflow Job Name')
+    parser.add_argument('--gcp_staging_location', required=True,  default='gs://xxxxx/staging', help='Dataflow Staging GCS location')
+    parser.add_argument('--gcp_tmp_location',     required=True,  default='gs://xxxxx/tmp',     help='Dataflow tmp GCS location')
+    parser.add_argument('--batch_size',           required=True,  default=10,                   help='Dataflow Batch Size')
+    parser.add_argument('--input_topic',          required=True,  default='',                   help='Input PubSub Topic: projects/<project_id>/topics/<topic_name>')
+    parser.add_argument('--bq_dataset_name',      required=True,  default='',                   help='Output BigQuery Dataset')
+    parser.add_argument('--bq_table_name',        required=True,  default='',                   help='Output BigQuery Table')
+    parser.add_argument('--runner',               required=True,  default='DirectRunner',       help='Dataflow Runner - DataflowRunner or DirectRunner (local)')
     
     known_args, pipeline_args = parser.parse_known_args(argv)
     
