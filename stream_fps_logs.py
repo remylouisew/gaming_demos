@@ -272,7 +272,7 @@ if __name__ == "__main__":
         payload = {
             'user':         username,
             'date':         event_datetime,
-            'sessionID':    '{}-{}-{}'.format(random.randint(), username, event_datetime),
+            'sessionID':    '{}-{}-{}'.format(random.randint(1000,9999), username, event_datetime),
             'minutesPlayed':random.randint(1,30),
             'kills':        random.randint(0,4),
             'weapon':       weapon,
