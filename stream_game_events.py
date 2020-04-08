@@ -13,6 +13,8 @@ import argparse
 import subprocess
 from google.cloud import bigquery, pubsub_v1
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/dzaratsian/gaming-demos-65e0d7c0c4b5.json"
+
 #########################################################
 #
 #   Functions
