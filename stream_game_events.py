@@ -4,7 +4,7 @@ USAGE:
 python ./stream_game_events.py --project_id gaming-demos --bq_dataset_id streaming --bq_table_id game_logs --pubsub_topic game-logs --sink pubsub --number_of_records 10 --delay 2
 '''
 
-import sys,csv
+import os,sys,csv
 import json
 import random
 from random_username.generate import generate_username
