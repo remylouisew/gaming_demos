@@ -4,7 +4,7 @@ USAGE:
 stream_fps_logs.py --project_id gaming-demos --bq_dataset_id games --bq_table_id fps_game_logs --pubsub_topic fps_game_logs --sink pubsub --number_of_records 10 --delay 1
 '''
 
-import sys,csv
+import os,sys,csv
 import json
 import random
 from random_username.generate import generate_username
